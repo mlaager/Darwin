@@ -8,7 +8,7 @@ EXPOSE 45323
 
 COPY ./Release/DarwinServer /usr/local/bin/DarwinServer
 RUN chmod a+rx /usr/local/bin/DarwinServer
-COPY ./Server/world_db.json /etc/world_db.json
+COPY ./Release/world_db.json /etc/world_db.json
 RUN chmod a+rw /etc/world_db.json
 USER Darwin
 CMD /usr/local/bin/DarwinServer --world_db=/etc/world_db.json
