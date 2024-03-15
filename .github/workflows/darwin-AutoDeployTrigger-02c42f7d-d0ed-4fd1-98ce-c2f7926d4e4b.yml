@@ -1,0 +1,43 @@
+name: Trigger auto deployment for darwin
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ Bin ]
+    paths:
+    - '**'
+    - '.github/workflows/darwin-AutoDeployTrigger-02c42f7d-d0ed-4fd1-98ce-c2f7926d4e4b.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.DARWIN_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: Docker.io
+          registryUsername: ${{ secrets.DARWIN_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.DARWIN_REGISTRY_PASSWORD }}
+          containerAppName: darwin
+          resourceGroup: DefaultResourceGroup-CHN
+          imageToBuild: mlaagerc2c/mlaagerc2c/darwin:${{ github.sha }}
+          
+            
+
+     
+
