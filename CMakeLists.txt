@@ -5,6 +5,8 @@ project(darwin
     LANGUAGES CXX
 )
 
+option(BUILD_SKIP_CLIENT "Skip the build of the client" OFF)
+
 # Standards is set to C++ 20.
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -24,6 +26,10 @@ add_subdirectory(External/Frame)
 
 # Sources.
 add_subdirectory(Common)
-add_subdirectory(Client)
+if ( NOT ${BUILD_SKIP_CLIENT})
+  add_subdirectory(Client)
+endif()
 add_subdirectory(Server)
-add_subdirectory(Test)
+if ( NOT ${BUILD_SKIP_CLIENT})
+  add_subdirectory(Test)
+endif()
