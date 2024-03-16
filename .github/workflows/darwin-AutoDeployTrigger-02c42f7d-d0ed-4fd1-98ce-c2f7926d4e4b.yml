@@ -35,7 +35,7 @@ jobs:
           registryPassword: ${{ secrets.DARWIN_REGISTRY_PASSWORD }}
           containerAppName: darwin
           resourceGroup: DefaultResourceGroup-CHN
-          imageToBuild: mlaager/mlaager/darwin:${{ github.sha }}
+          imageToBuild: mlaager/darwin:${{ github.sha }}
           
             
 
