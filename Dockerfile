@@ -6,9 +6,7 @@ RUN apt update && apt install -y libstdc++6-amd64-cross libc6-amd64-cross  \
     apt-get clean &&  rm -rf /var/lib/apt/lists/*
 WORKDIR /src
 RUN git clone https://github.com/microsoft/vcpkg.git
-RUN pwd
 COPY vcpkg.json .
-RUN ls
 WORKDIR /src/vcpkg
 RUN git checkout tags/2024.02.14
 RUN  ./bootstrap-vcpkg.sh && ./vcpkg integrate install
@@ -22,8 +20,6 @@ RUN cmake --build . --config Release -j 10
 RUN find . -name "DarwinServer"
 
 
-
-
 FROM ubuntu:23.10
 LABEL maintainer="max.laager@gmail.com"
 RUN apt update && apt install -y libstdc++6-amd64-cross libc6-amd64-cross && \
@@ -31,7 +27,6 @@ RUN apt update && apt install -y libstdc++6-amd64-cross libc6-amd64-cross && \
 RUN groupadd --gid 1001 Darwin
 RUN useradd   --uid 1001 --gid 1001 -m Darwin
 EXPOSE 45323
-
 COPY --from=BUILD /src/build/Server/DarwinServer /usr/local/bin/DarwinServer
 RUN chmod a+rx /usr/local/bin/DarwinServer
 COPY ./Server/world_db.json /etc/world_db.json
