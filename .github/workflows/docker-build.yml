@@ -25,3 +25,16 @@ jobs:
          cache-to: type=gha,mode=max
          push: true
          tags: mlaager/darwin:latest
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.DARWIN_AZURE_CREDENTIALS }}
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          registryUrl: registry.hub.docker.com
+          registryUsername: ${{ secrets.DARWIN_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.DARWIN_REGISTRY_PASSWORD }}
+          containerAppName: darwin
+          resourceGroup: DefaultResourceGroup-CHN
+          imageToDeploy: registry.hub.docker.com/mlaager/darwin:latest
