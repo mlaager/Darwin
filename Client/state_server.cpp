@@ -7,11 +7,14 @@
 #include "state_disconnected.h"
 #include "state_title.h"
 #include "state_ping.h"
+#include "overlay_state.h"
 
 namespace darwin::state {
 
-    void StateServer::Enter() {
+    void StateServer::Enter(const proto::ClientParameter& client_parameter) {
         logger_->info("Entering server state");
+        client_parameter_ = client_parameter;
+        modal_server_params_.server_name = client_parameter_.server_name();
         for (auto* plugin : app_.GetWindow().GetDevice().GetPluginPtrs()) {
             logger_->info("\tPlugin: [{}] {}", (std::uint64_t)plugin, plugin->GetName().c_str());
             if (!draw_gui_interface_) {
@@ -23,6 +26,17 @@ namespace darwin::state {
         if (!draw_gui_interface_) {
             throw std::runtime_error("No draw gui interface plugin found?");
         }
+#ifdef _DEBUG
+        auto overlay_state = std::make_unique<overlay::OverlayState>(
+            "overlay_state",
+            client_parameter_,
+            client_parameter_.overlay_state());
+        overlay_state->SetStateName("state server");
+        draw_gui_interface_->AddOverlayWindow(
+            glm::vec2(0.0f, 0.0f),
+            app_.GetWindow().GetDevice().GetSize(),
+            std::move(overlay_state));
+#endif // _DEBUG
         draw_gui_interface_->AddModalWindow(
             std::make_unique<modal::ModalServer>(
                 "Select Server",
@@ -36,7 +50,8 @@ namespace darwin::state {
             case modal::ModalServerButton::Connect:
                 darwin_client_ = 
                     std::make_unique<DarwinClient>(
-                        modal_server_params_.server_name);
+                        modal_server_params_.server_name,
+                        client_parameter_);
                 state_context.ChangeState(
                     std::make_unique<StatePing>(
                         app_,
@@ -52,6 +67,9 @@ namespace darwin::state {
 
     void StateServer::Exit() {
         logger_->info("Exit server state");
+#ifdef _DEBUG
+        draw_gui_interface_->DeleteWindow("overlay_state");
+#endif // _DEBUG
     }
 
 } // namespace darwin::state.

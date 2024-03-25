@@ -6,6 +6,7 @@
 #include "frame/logger.h"
 #include "frame/gui/draw_gui_interface.h"
 #include "modal_victory.h"
+#include "Common/client_parameter.pb.h"
 
 namespace darwin::state {
 
@@ -17,7 +18,7 @@ namespace darwin::state {
             app_(app), darwin_client_(std::move(darwin_client)) {}
         ~StateVictory() override = default;
 
-        void Enter() override;
+        void Enter(const proto::ClientParameter& client_parameter) override;
         void Update(StateContext& state_context) override;
         void Exit() override;
 
@@ -27,6 +28,7 @@ namespace darwin::state {
         frame::Logger& logger_ = frame::Logger::GetInstance();
         frame::gui::DrawGuiInterface* draw_gui_ = nullptr;
         darwin::modal::ModalVictoryParams modal_victory_params_;
+        proto::ClientParameter client_parameter_;
     };
 
 }  // namespace darwin::state.

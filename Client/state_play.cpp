@@ -6,8 +6,10 @@
 #include "state_disconnected.h"
 #include "state_death.h"
 #include "state_victory.h"
+#include "overlay_play.h"
 #include "Common/convert_math.h"
 #include "Common/vector.h"
+#include "overlay_state.h"
 
 namespace darwin::state {
 
@@ -20,8 +22,9 @@ namespace darwin::state {
     {
     }
 
-    void StatePlay::Enter() {
+    void StatePlay::Enter(const proto::ClientParameter& client_parameter) {
         logger_->info("Entered play state");
+        client_parameter_ = client_parameter;
         auto unique_input = std::make_unique<InputAcquisition>();
         input_acquisition_ptr_ = unique_input.get();
         app_.GetWindow().SetInputInterface(std::move(unique_input));
@@ -39,6 +42,26 @@ namespace darwin::state {
         if (!draw_gui_) {
             throw std::runtime_error("No draw gui interface plugin found?");
         }
+#ifdef _DEBUG
+        auto overlay_state = std::make_unique<overlay::OverlayState>(
+            "overlay_state",
+            client_parameter_,
+            client_parameter_.overlay_state());
+        overlay_state->SetStateName("state play");
+        draw_gui_->AddOverlayWindow(
+            glm::vec2(0.0f, 0.0f),
+            app_.GetWindow().GetDevice().GetSize(),
+            std::move(overlay_state));
+#endif // _DEBUG
+        auto overlay_play = std::make_unique<overlay::OverlayPlay>(
+            "overlay_play",
+            client_parameter_,
+            client_parameter_.overlay_play());
+        overlay_play_ptr_ = overlay_play.get();
+        draw_gui_->AddOverlayWindow(
+            glm::vec2(0.0f, 0.0f),
+            app_.GetWindow().GetDevice().GetSize(),
+            std::move(overlay_play));
         for (const auto& title : draw_gui_->GetWindowTitles()) {
             logger_->info("\tWindow: {}", title);
             if (!stats_window_) {
@@ -60,6 +83,10 @@ namespace darwin::state {
         logger_->info("Exited play state");
         app_.GetWindow().SetInputInterface(nullptr);
         input_acquisition_ptr_ = nullptr;
+        draw_gui_->DeleteWindow("overlay_play");
+#ifdef _DEBUG
+        draw_gui_->DeleteWindow("overlay_state");
+#endif // _DEBUG
     }
 
     frame::ProgramInterface& StatePlay::GetProgram() {
@@ -252,6 +279,12 @@ namespace darwin::state {
         if ((name != "") && (name != "earth")) {
             // Send a report movement to the server.
             darwin_client_->ReportHit(name);
+        }
+        // Update the overlay.
+        if (overlay_play_ptr_) {
+            overlay_play_ptr_->SetCharacterName(character_name);
+            overlay_play_ptr_->SetCharacters(
+                world_simulator_.GetCharacters());
         }
         // Get the delta time.
         double delta_time = now - world_simulator_.GetLastServerUpdateTime();
