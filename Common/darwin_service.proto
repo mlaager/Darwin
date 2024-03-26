@@ -161,8 +161,10 @@ message PlayerParameter {
     double eat_speed = 11;
     // Color list.
     repeated ColorParameter colors = 12;
-    // give large balls a max speed bonus
+    // Give large balls a max speed bonus.
     double mass_speed_bonus = 13;
+    // Factor of how much boost max speed when boost key is pressed.
+    double boosting_factor = 14;
 }
 
 // WorldDatabase saved as a file.

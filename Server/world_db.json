@@ -76,6 +76,7 @@
         }
       }
     ],
-    "mass_speed_bonus": 3.0
+    "mass_speed_bonus": 3.0,
+    "boosting_factor":  1.5
   }
 }

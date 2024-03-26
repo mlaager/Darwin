@@ -162,39 +162,59 @@ namespace darwin::state {
                     (character.normal() * player_parameter.vertical_speed()));
                 character.set_status_enum(proto::STATUS_JUMPING);
             }
-            if (input_acquisition_ptr_->IsMoving() || 
-                input_acquisition_ptr_->IsBoosting()) {
-                modified = true;
-                // calculate the firction for the delta_time
 
-                // pressing boost key (q) should lower friction and lower mass
-                double boosting_factor = 1.0;
-                if (input_acquisition_ptr_->IsBoosting()) {
-                    if (is_boost_active) {
-                        if (now - last_boost_start_time < 5.0) {
-                            boosting_factor = 1.3;
-                        }
-                        else {
-                            is_boost_active = false;
-                        }
+            // If player press speed boost,
+            // and speed boost ist not in cooldown
+            // request speed boost
+            if (input_acquisition_ptr_->IsBoosting()) {
+                bool speed_boost_ready = true;
+                for (const auto& special_parameter : character.special_parameters()) {
+                    if (special_parameter.name() == "speed") {
+                        if (special_parameter.special_enum() != proto::SPECIAL_WAIT) {
+                            speed_boost_ready = false;
+                        } 
+                    }
+                }
+                if (speed_boost_ready) {
+                    proto::SpecialParameter special_parameter;
+                    special_parameter.set_name("speed");
+                    special_parameter.set_special_enum(proto::SPECIAL_ACTIVATE);
+                    character.add_special_parameters()->CopyFrom(special_parameter);
+                }
+                
+            }
+            double boosting_factor = 1.0;
+            // pressing boost key (1) should lower friction and lower mass
+            if (input_acquisition_ptr_->IsBoosting()) {
+                if (is_boost_active) {
+                    if (now - last_boost_start_time < 5.0) {
+                        boosting_factor = player_parameter.boosting_factor();
                     }
                     else {
-                        if (now - last_boost_start_time > 10.0) {
-                            is_boost_active = true;
-                            last_boost_start_time = now;
-                        }
+                        is_boost_active = false;
                     }
-                    
                 }
-                // smaller balls should accelerate more so they can avoid better
+                else {
+                    if (now - last_boost_start_time > 10.0) {
+                        is_boost_active = true;
+                        last_boost_start_time = now;
+                    }
+                }
+
+            }
+            if (input_acquisition_ptr_->IsMoving()) {
+                modified = true;
+                // Calculate the firction for the delta_time.
+                // Smaller balls should accelerate more so they can avoid better.
                 double friction_delta_time = player_parameter.friction() * delta_time / std::log(physic.mass()) ;
-                // make bigger have hight max speed so they are more dangerous
-                double mass_bonus = 1.0 + physic.mass() / player_parameter.victory_size() / player_parameter.mass_speed_bonus(); // max speed bonus is divied by mass_speed_bonus factor relative to the mass
+                // Make bigger have hight max speed so they are more dangerous.
+                // Max speed bonus is divied by mass_speed_bonus factor relative to the mass,
+                double mass_bonus = 1.0 + physic.mass() / player_parameter.victory_size() / player_parameter.mass_speed_bonus(); 
                 // calculate acceleration from friction and traget terminal velocity
                 double acceleration_delta_time = friction_delta_time * 
                      player_parameter.horizontal_speed() * mass_bonus * boosting_factor *
                      player_parameter.horizontal_speed() * mass_bonus * boosting_factor;
-                // we need to current speed to get the quadratic friction
+                // We need to current speed to get the quadratic friction.
                 double current_speed = Length(physic.position_dt());
                 // we apply the friction even if we acceletare (accelaration doesnt make friction disapear)
                 // also we wont end in orbit this way
