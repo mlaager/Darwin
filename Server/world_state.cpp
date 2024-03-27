@@ -289,6 +289,7 @@ namespace darwin {
                 if (Dot(color_from, color_to) > 0.99) {
                     if (type_enum == proto::TYPE_UPGRADE) {
                         LostSourceElementLocked(from_to);
+                        to_remove_type.insert({ target_name, type_enum });
                     }
                     if (type_enum == proto::TYPE_CHARACTER) {
                         LostSourceCharacterLocked(from_to);
