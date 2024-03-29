@@ -1,7 +1,5 @@
-FROM ubuntu:23.10 AS BASE
+FROM ubuntu:23.10 AS BUILD
 RUN rm /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
-
-FROM BASE AS BUILD
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt update && apt install --yes libstdc++6-amd64-cross libc6-amd64-cross  \
