@@ -16,8 +16,9 @@ RUN --mount=type=bind,target=/var/tmp/src \
 RUN --mount=type=bind,target=/var/tmp/src \
     cmake --build /var/tmp/build --config Release --parallel 10 --target DarwinServer
 
-FROM BASE
+FROM ubuntu:23.10
 LABEL maintainer="max.laager@gmail.com"
+RUN rm /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt update && apt install --yes libstdc++6-amd64-cross libc6-amd64-cross
